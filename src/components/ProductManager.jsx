@@ -33,7 +33,7 @@ const ProductList = ({ products, onDeleteClick }) => (
                         <img src={getThumbnailUrl(product.imageUrl)} alt={product.name} className="w-full h-40 object-cover"/>
                         <div className="p-4">
                             <h4 className="font-semibold text-gray-900">{product.name}</h4>
-                            <p className="text-gray-600">${product.price.toFixed(2)}</p>
+                            <p className="text-gray-600">₦{product.price.toFixed(2)}</p>
                              <button onClick={() => onDeleteClick(product.id)} className="text-sm text-red-500 hover:underline mt-2">Delete</button>
                         </div>
                     </div>
@@ -143,6 +143,21 @@ const ProductManager = ({ user, userData }) => {
             setUploading(false);
         }
     };
+
+    // Function to ensure a number typed is formatted correctly e.g 10000(ten thousand) -> 10,000
+    const formatNumber = (num) => {
+        if (!num) return '';
+        const cleanNum = num.toString().replace(/[^\d.]/g, '');
+        const parts = cleanNum.split('.');
+
+        parts[0] = parts[0].replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+        return parts.length > 1 ? parts.join('.') : parts[0];
+    };
+
+    const parseNumber = (formatNumber) => {
+        if (!formatNumber) return '';
+        return formatNumber.replace(/,/g, '');
+    };
     
     return (
         <div>
@@ -152,15 +167,28 @@ const ProductManager = ({ user, userData }) => {
                 <form onSubmit={handleSubmit} className="mt-4 space-y-4">
                     <div>
                         <label className="block text-sm font-medium text-gray-700">Product Name</label>
-                        <input type="text" value={name} onChange={(e) => setName(e.target.value)} className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md" required />
+                        <input 
+                            type="text" 
+                            value={name} 
+                            onChange={(e) => setName(e.target.value)} 
+                            className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md" 
+                            required
+                             />
                     </div>
                     <div>
                         <label className="block text-sm font-medium text-gray-700">Description</label>
                         <textarea value={description} onChange={(e) => setDescription(e.target.value)} className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md"></textarea>
                     </div>
                     <div>
-                        <label className="block text-sm font-medium text-gray-700">Price ($)</label>
-                        <input type="number" step="0.01" value={price} onChange={(e) => setPrice(e.target.value)} className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md" required />
+                        <label className="block text-sm font-medium text-gray-700">Price (₦)</label>
+                        <input 
+                            type="text" 
+                            value={formatNumber(price)} 
+                            onChange={(e) => setPrice(parseNumber(e.target.value))} 
+                            className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none" 
+                            required 
+                            placeholder="e.g., 100,000"
+                            />
                     </div>
                     <div>
                         <label className="block text-sm font-medium text-gray-700">Product Image</label>

@@ -19,7 +19,7 @@ const ProductCard = ({ product, vendor, onViewProduct, onViewVendor }) => {
             <img src={getThumbnailUrl(product.imageUrl)} alt={product.name} className="w-full h-48 object-cover" />
             <div className="p-4 flex flex-col flex-grow">
                 <h3 className="text-lg font-bold text-gray-900 truncate">{product.name}</h3>
-                <p className="text-xl font-extrabold text-blue-600 mt-2">${product.price.toFixed(2)}</p>
+                <p className="text-xl font-extrabold text-blue-600 mt-2">₦{product.price.toFixed(2)}</p>
                 
                 <div className="mt-4 pt-4 border-t border-gray-200 flex-grow">
                     <div className="flex items-center gap-2 cursor-pointer" onClick={() => onViewVendor(product.vendorId)}>

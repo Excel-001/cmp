@@ -1,3 +1,5 @@
+/* eslint-disable no-unused-vars */
+/* eslint-disable no-undef */
 import React, { useState, useEffect } from 'react';
 import { onAuthStateChanged, signOut } from 'firebase/auth';
 import { doc, onSnapshot, collection, addDoc, setDoc, serverTimestamp, query, where, writeBatch, getDocs, documentId } from 'firebase/firestore';
@@ -143,7 +145,9 @@ export default function App() {
                 </>
             ) : (
                 <div className="w-full max-w-6xl mx-auto">
-                     <div className="flex justify-center mb-8"><Logo /></div>
+                     <div className="flex justify-center mb-8">
+                        
+                     </div>
                     <Auth />
                 </div>
             )}

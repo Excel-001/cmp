@@ -1,16 +1,26 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { doc, updateDoc } from 'firebase/firestore';
 import { db, appId } from '/src/firebaseConfig.js';
 import imageCompression from 'https://cdn.jsdelivr.net/npm/browser-image-compression@2.0.2/dist/browser-image-compression.mjs';
 
 const UserSettings = ({ user, userData }) => {
     const [profileData, setProfileData] = useState(userData);
+    const [originalData, setOriginalData] = useState(userData);
     const [uploading, setUploading] = useState(false);
     const [error, setError] = useState('');
     const [success, setSuccess] = useState('');
+    const [hasChanges, setHasChanges] = useState(false);
     
     const CLOUDINARY_CLOUD_NAME = "dojvewcke";
     const CLOUDINARY_UPLOAD_PRESET = "campus_marketplace_preset";
+
+    useEffect(() => {
+        const fieldsToCheck = ['firstName', 'lastName', 'middleName', 'phoneNumber', 'location'];
+        const changed = fieldsToCheck.some(field => 
+            profileData[field] !== originalData[field]
+        );
+        setHasChanges(changed);
+    }, [profileData, originalData]);
 
     const handleImageUpload = async (event) => {
         const file = event.target.files[0];
@@ -28,6 +38,7 @@ const UserSettings = ({ user, userData }) => {
             const photoURL = data.secure_url;
             await updateDoc(doc(db, `artifacts/${appId}/users`, user.uid), { photoURL });
             setProfileData(prev => ({ ...prev, photoURL }));
+            setOriginalData(prev => ({ ...prev, photoURL}));
             setSuccess("Profile picture updated!");
             setTimeout(() => setSuccess(''), 3000);
         } catch (err) {
@@ -49,9 +60,11 @@ const UserSettings = ({ user, userData }) => {
                 phoneNumber: profileData.phoneNumber,
                 location: profileData.location
             });
+            setOriginalData({ ...profileData });
             setSuccess('Profile updated successfully!');
-             setTimeout(() => setSuccess(''), 3000);
+            setTimeout(() => setSuccess(''), 3000);
         } catch (err) {
+            console.log(err);
             setError('Failed to update profile.');
         }
     };
@@ -89,7 +102,12 @@ const UserSettings = ({ user, userData }) => {
                     </div>
                      <div>
                         <label className="block text-sm font-medium">Phone Number</label>
-                        <input type="tel" value={profileData.phoneNumber} onChange={(e) => setProfileData({...profileData, phoneNumber: e.target.value})} className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md" required />
+                        <input 
+                            type="tel" 
+                            value={profileData.phoneNumber} 
+                            onChange={(e) => setProfileData({...profileData, phoneNumber: e.target.value})} 
+                            className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md" 
+                            required />
                     </div>
                      <div>
                         <label className="block text-sm font-medium">Location</label>
@@ -99,7 +117,17 @@ const UserSettings = ({ user, userData }) => {
                  {error && <p className="text-red-500 text-sm mt-4">{error}</p>}
                  {success && <p className="text-green-500 text-sm mt-4">{success}</p>}
                 <div className="mt-6">
-                     <button type="submit" className="w-full sm:w-auto px-6 py-2 bg-blue-600 text-white font-semibold rounded-lg hover:bg-blue-700">Save Changes</button>
+                     <button 
+                        type="submit" 
+                        disabled={!hasChanges}
+                        className={`w-full sm:w-auto px-6 py-2 bg-blue-600 text-white font-semibold rounded-lg ${
+                            hasChanges
+                                ? 'bg-blue-600 text-white hover:bg-blue-700'
+                                : 'bg-gray-300 text-gray-500 cursor-not-allowed'
+                            }`}
+                        >
+                            Save Changes
+                            </button>
                 </div>
             </form>
         </div>
