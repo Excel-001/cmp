@@ -16,26 +16,32 @@ const ProductCard = ({ product, vendor, onViewProduct }) => {
     const avgRating = vendor?.reputation?.ratings > 0 ? (vendor.reputation.score / vendor.reputation.ratings) : 0;
 
     return (
-        <div className="bg-white rounded-lg shadow-md overflow-hidden border border-gray-200 hover:shadow-xl transition-shadow duration-300 flex flex-col">
-            <img 
+        <div className="flex flex-col">
+            <div className='bg-[#F3F4F7] flex justify-center items-center max-h-[16rem] p-1 '>
+                  <img 
                 src={getThumbnailUrl(product.imageUrl)} 
-                alt={product.name} 
-                className="w-full h-48 object-cover" 
-            />
-            <div className="p-4 flex flex-col flex-grow">
-                <h3 className="text-lg font-bold text-gray-900 truncate">{product.name}</h3>
-                <p className="text-xl font-extrabold text-blue-600 mt-2">${product.price.toFixed(2)}</p>
+                alt={product.name}
+                className=" max-h-[98%] max-w-[full] object-fit  m-auto" 
+            /> 
+            </div>
+         
+            <div className=" relative p-1">
+                <div className='flex-col text-start items-center '>
+                     <p className="text-lg font-bold  h-full  text-gray-900 truncate">{product.name}</p>
+                <p className="text-lg  font-bold h-full truncate text-blue-600">${product.price.toFixed(2)}</p>
+                </div>
+               
                 
                 {/* --- Updated Vendor Tag Section --- */}
-                <div className="mt-4 pt-4 border-t border-gray-200 flex-grow">
+                <div className=" pt-1 border-t border-gray-200 flex-grow">
                     <div className="flex items-center gap-2">
-                        <img 
+                        {/* <img 
                             src={vendor?.photoURL || `https://placehold.co/32x32/E0E7FF/4F46E5?text=${vendor?.firstName?.charAt(0) || 'V'}`} 
                             alt={vendor?.firstName}
-                            className="w-8 h-8 rounded-full object-cover"
-                        />
+                            className=" w-[85%] m-auto self-center rounded-full object-cover"
+                        /> */}
                         <div>
-                            <p className="text-sm font-semibold text-gray-800 truncate">{`${vendor?.firstName || ''} ${vendor?.lastName || ''}`}</p>
+                            {/* <p className="text-sm font-semibold text-gray-800 truncate">{`${vendor?.firstName || ''} ${vendor?.lastName || ''}`}</p> */}
                             <div className="flex items-center">
                                 <StarRating rating={avgRating} />
                                 <span className="text-xs text-gray-500 ml-1">({vendor?.reputation?.ratings || 0})</span>
@@ -46,7 +52,7 @@ const ProductCard = ({ product, vendor, onViewProduct }) => {
 
                 <button 
                     onClick={() => onViewProduct(product)} 
-                    className="mt-4 w-full bg-blue-600 text-white py-2 rounded-md hover:bg-blue-700"
+                    className=" w-full bg-blue-600 text-white py-2 rounded-md hover:bg-blue-700"
                 >
                     View Product
                 </button>

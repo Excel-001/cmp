@@ -1,24 +1,28 @@
+
 import React, { useState } from 'react';
+// --- HIGHLIGHT: All import paths have been corrected to be absolute ---
+import Dashboard from '/src/components/Dashboard.jsx';
 import ProductManager from '/src/components/ProductManager.jsx';
 import UserSettings from '/src/components/UserSettings.jsx';
 import ChatList from '/src/components/ChatList.jsx';
 
+// --- A new, reusable NavLink component for the sidebar ---
+const NavLink = ({ tabName, activeTab, setActiveTab, children }) => (
+    <button 
+        onClick={() => setActiveTab(tabName.toLowerCase())}
+        className={`flex items-center gap-3 px-3 py-2 rounded-md text-sm font-medium w-full text-left transition-colors ${activeTab === tabName.toLowerCase() ? 'bg-indigo-100 text-indigo-700' : 'text-gray-600 hover:bg-gray-50'}`}
+    >
+        {children}
+    </button>
+);
+
 const VendorProfile = ({ user, userData, onSignOut, onChatSelect }) => {
     const [activeTab, setActiveTab] = useState('dashboard');
-
-    const NavLink = ({ tabName, children }) => (
-        <button 
-            onClick={() => setActiveTab(tabName.toLowerCase())}
-            className={`flex items-center gap-3 px-3 py-2 rounded-md text-sm font-medium w-full text-left ${activeTab === tabName.toLowerCase() ? 'bg-blue-50 text-blue-700' : 'text-gray-600 hover:bg-gray-50'}`}
-        >
-            {children}
-        </button>
-    );
 
     const renderContent = () => {
         switch (activeTab) {
             case 'dashboard':
-                return <div><h2 className="text-2xl font-bold">Dashboard</h2><p className="mt-2 text-gray-500">Welcome back! Here's an overview of your store.</p></div>;
+                return <Dashboard user={user} />;
             case 'products':
                 return <ProductManager user={user} userData={userData} />;
             case 'messages':
@@ -26,37 +30,42 @@ const VendorProfile = ({ user, userData, onSignOut, onChatSelect }) => {
             case 'settings':
                 return <UserSettings user={user} userData={userData} />;
             default:
-                return <div>Dashboard</div>;
+                return <Dashboard user={user} />;
         }
     };
 
     return (
-        <div className="bg-white p-4 sm:p-6 rounded-lg shadow-lg border w-full">
-            <div className="flex flex-col md:flex-row gap-8">
-                <aside className="w-full md:w-1/4">
-                    <div className="flex flex-col items-center">
+        <div className="bg-white rounded-lg shadow-lg border w-full">
+            <div className="flex flex-col md:flex-row">
+                {/* --- New Sidebar Navigation --- */}
+                <aside className="w-full md:w-64 p-4 border-r border-gray-200">
+                    <div className="flex items-center gap-3 mb-8">
                          <img 
-                            src={userData.photoURL || `https://placehold.co/128x128/E0E7FF/4F46E5?text=${userData.firstName.charAt(0)}`} 
+                            src={userData.photoURL || `https://placehold.co/40x40/E0E7FF/4F46E5?text=${userData.firstName.charAt(0)}`} 
                             alt="Profile" 
-                            className="w-24 h-24 sm:w-32 sm:h-32 mb-4 rounded-full object-cover"
+                            className="w-10 h-10 rounded-full object-cover"
                         />
-                        <h2 className="text-xl font-bold text-center">{`${userData.firstName} ${userData.lastName}`}</h2>
-                        <p className="text-sm text-gray-500">{userData.location}</p>
+                        <div>
+                            <h2 className="text-md font-semibold">{`${userData.firstName} ${userData.lastName}`}</h2>
+                            <p className="text-xs text-gray-500">Vendor Account</p>
+                        </div>
                     </div>
-                    <nav className="mt-8 space-y-2">
-                        <NavLink tabName="Dashboard">Dashboard</NavLink>
-                        <NavLink tabName="Products">Products</NavLink>
-                        <NavLink tabName="Messages">Messages</NavLink>
-                        <NavLink tabName="Settings">Settings</NavLink>
+                    <nav className="space-y-2">
+                        <NavLink tabName="Dashboard" activeTab={activeTab} setActiveTab={setActiveTab}>Dashboard</NavLink>
+                        <NavLink tabName="Products" activeTab={activeTab} setActiveTab={setActiveTab}>Products</NavLink>
+                        <NavLink tabName="Messages" activeTab={activeTab} setActiveTab={setActiveTab}>Messages</NavLink>
+                        <NavLink tabName="Settings" activeTab={activeTab} setActiveTab={setActiveTab}>Settings</NavLink>
                     </nav>
                      <button 
                         onClick={onSignOut}
-                        className="mt-8 w-full bg-red-100 text-red-700 py-2 rounded-lg font-semibold hover:bg-red-200"
+                        className="mt-8 w-full text-left flex items-center gap-3 px-3 py-2 text-sm font-medium text-gray-600 hover:bg-gray-50 rounded-md"
                     >
                         Sign Out
                     </button>
                 </aside>
-                <main className="w-full md:w-3/4">
+
+                {/* --- Main Content Area --- */}
+                <main className="w-full p-6">
                     {renderContent()}
                 </main>
             </div>

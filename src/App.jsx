@@ -12,11 +12,11 @@ import Cart from '/src/components/Cart.jsx';
 import Checkout from '/src/components/Checkout.jsx';
 import VendorStorefront from '/src/components/VendorStorefront.jsx';
 // import Logo from '/src/components/Logo.jsx';
+import ProductDetail from '/src/components/ProductDetail.jsx';
 
 const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
 
 export default function App() {
-    // --- State Management ---
     const [authUser, setAuthUser] = useState(null);
     const [userData, setUserData] = useState(null);
     const [loading, setLoading] = useState(true);
@@ -27,8 +27,9 @@ export default function App() {
     const [cartItems, setCartItems] = useState([]);
     const [isCheckingOut, setIsCheckingOut] = useState(false);
     const [products, setProducts] = useState({});
+    const [selectedProduct, setSelectedProduct] = useState(null);
+    const [vendors, setVendors] = useState({});
 
-    // --- Firebase Listeners ---
     useEffect(() => {
         const listen = onAuthStateChanged(auth, (user) => {
             if (user) {
@@ -68,8 +69,7 @@ export default function App() {
         }
     }, [cartItems, products]);
 
-    // --- Event Handlers ---
-    const handleSignOut = () => { signOut(auth); setActiveView({ page: 'marketplace', context: null }); setActiveChatPartnerId(null); };
+    const handleSignOut = () => { signOut(auth); setActiveView({ page: 'marketplace', context: null }); };
     const startChat = async (vendorId, product) => {
         if (!authUser) return;
         const chatId = [authUser.uid, vendorId].sort().join('_');
@@ -95,18 +95,18 @@ export default function App() {
             setShowCart(true);
         } catch (error) { console.error("Error adding to cart: ", error); }
     };
-    const handlePlaceOrder = async (orderDetails) => { /* ... (full order logic) */ };
+    const handlePlaceOrder = async (orderDetails) => { /* ... */ };
     const handleViewVendor = (vendorId) => setActiveView({ page: 'vendorStorefront', context: vendorId });
     const handleViewProfile = () => setActiveView({ page: 'profile', context: null });
-    const handleBackToMarket = () => setActiveView({ page: 'marketplace', context: null });
+    const handleBackToMarket = () => { setSelectedProduct(null); setActiveView({ page: 'marketplace', context: null }); };
+    const handleViewProduct = (product) => setSelectedProduct(product);
 
-    // --- Sub-Components ---
     const Header = () => (
         <div className="w-full max-w-6xl mx-auto flex justify-between items-center mb-8">
-            {/* <div onClick={handleBackToMarket}><Logo /></div> */}
+            {/* <div onClick={handleBackToMarket} className="cursor-pointer"><Logo /></div> */}
             <div>
-                <button onClick={handleBackToMarket} className={`px-4 py-2 rounded-md mr-2 ${activeView.page === 'marketplace' ? 'bg-blue-100' : ''}`}>Market</button>
-                <button onClick={handleViewProfile} className={`px-4 py-2 rounded-md mr-2 ${activeView.page === 'profile' ? 'bg-blue-100' : ''}`}>Profile</button>
+                <button onClick={handleBackToMarket} className={`px-4 py-2 rounded-md mr-2 ${activeView.page === 'marketplace' ? 'bg-blue-100 text-blue-700' : 'text-gray-500'}`}>Market</button>
+                <button onClick={handleViewProfile} className={`px-4 py-2 rounded-md mr-2 ${activeView.page === 'profile' ? 'bg-blue-100 text-blue-700' : 'text-gray-500'}`}>Profile</button>
                 <button onClick={() => setShowCart(true)} className="relative p-2 rounded-full hover:bg-gray-100">
                     <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z"></path></svg>
                     {cartItems.length > 0 && <span className="absolute top-0 right-0 h-5 w-5 rounded-full bg-red-500 text-white text-xs flex items-center justify-center">{cartItems.length}</span>}
@@ -116,16 +116,27 @@ export default function App() {
     );
     
    const renderMainContent = () => {
+        if (selectedProduct) {
+            const vendor = vendors[selectedProduct.vendorId] || (activeView.context === selectedProduct.vendorId ? products[selectedProduct.id]?.vendor : null)
+            return <ProductDetail 
+                        product={selectedProduct} 
+                        vendor={vendor} 
+                        onBack={() => setSelectedProduct(null)} 
+                        authUser={authUser} 
+                        onStartChat={startChat}
+                    />
+        }
+       
         switch (activeView.page) {
             case 'vendorStorefront':
-                return <VendorStorefront vendorId={activeView.context} onBack={handleBackToMarket} onStartChat={startChat} onViewProduct={(product) => {/* ... */}} />;
+                return <VendorStorefront vendorId={activeView.context} onBack={handleBackToMarket} onStartChat={startChat} onViewProduct={handleViewProduct} />;
             case 'profile':
                 return userData.role === 'Vendor'
                     ? <VendorProfile user={authUser} userData={userData} onSignOut={handleSignOut} onChatSelect={setActiveChatPartnerId} />
                     : <UserProfile user={authUser} userData={userData} onSignOut={handleSignOut} onChatSelect={setActiveChatPartnerId} />;
             case 'marketplace':
             default:
-                return <Marketplace userData={userData} authUser={authUser} onStartChat={startChat} onViewVendor={handleViewVendor} />;
+                return <Marketplace userData={userData} authUser={authUser} onStartChat={startChat} onViewVendor={handleViewVendor} onViewProduct={handleViewProduct} />;
         }
     };
     
@@ -143,7 +154,7 @@ export default function App() {
                 </>
             ) : (
                 <div className="w-full max-w-6xl mx-auto">
-                     <div className="flex justify-center mb-8"><Logo /></div>
+                     {/* <div className="flex justify-center mb-8"><Logo /></div> */}
                     <Auth />
                 </div>
             )}
