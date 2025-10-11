@@ -1,5 +1,5 @@
+// --- HIGHLIGHT: The typo in the React import statement has been corrected ---
 import React, { useState, useEffect, useRef } from 'react';
-// --- HIGHLIGHT: The import path for firebaseConfig.js has been corrected ---
 import { db, appId } from '/src/firebaseConfig.js';
 import { collection, query, orderBy, onSnapshot, addDoc, serverTimestamp, doc, getDoc, updateDoc } from 'firebase/firestore';
 

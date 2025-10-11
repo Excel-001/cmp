@@ -23,7 +23,7 @@ const ProductCard = ({ product, vendor, onViewProduct, onViewVendor }) => {
                 <img
                     src={getThumbnailUrl(product.imageUrl)}
                     alt={product.name}
-                    className="w-full h-full object-contain"
+                    className="w-full h-full rounded-t-lg object-contain"
                 />
             </div>
 
@@ -187,7 +187,7 @@ const Marketplace = ({ userData, authUser, onStartChat, onViewVendor }) => {
             {loading ? (
                 <p className="text-center">Loading...</p>
             ) : (
-                <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-6 md:gap-6 gap-3">
+                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 md:gap-6 gap-3">
                     {products.map(product => (
                         <ProductCard
                             key={product.id}

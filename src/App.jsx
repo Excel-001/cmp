@@ -1,18 +1,18 @@
 import React, { useState, useEffect } from 'react';
 import { onAuthStateChanged, signOut } from 'firebase/auth';
 import { doc, onSnapshot, collection, addDoc, setDoc, serverTimestamp, query, where, writeBatch, getDocs, documentId } from 'firebase/firestore';
-// --- HIGHLIGHT: All import paths have been corrected to be absolute ---
-import { auth, db } from '/src/firebaseConfig.js'; 
-import Auth from '/src/components/Auth.jsx';
-import Marketplace from '/src/components/Marketplace.jsx';
-import VendorProfile from '/src/components/VendorProfile.jsx';
-import UserProfile from '/src/components/UserProfile.jsx';
-import Chat from '/src/components/Chat.jsx';
-import Cart from '/src/components/Cart.jsx';
-import Checkout from '/src/components/Checkout.jsx';
-import VendorStorefront from '/src/components/VendorStorefront.jsx';
-// import Logo from '/src/components/Logo.jsx';
-import ProductDetail from '/src/components/ProductDetail.jsx';
+// --- HIGHLIGHT: All import paths have been corrected to be relative ---
+import { auth, db } from './firebaseConfig.js'; 
+import Auth from './components/Auth.jsx';
+import Marketplace from './components/Marketplace.jsx';
+import VendorProfile from './components/VendorProfile.jsx';
+import UserProfile from './components/UserProfile.jsx';
+import Chat from './components/Chat.jsx';
+import Cart from './components/Cart.jsx';
+import Checkout from './components/Checkout.jsx';
+import VendorStorefront from './components/VendorStorefront.jsx';
+// import Logo from './components/Logo.jsx';
+import ProductDetail from './components/ProductDetail.jsx';
 
 const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
 
@@ -84,18 +84,56 @@ export default function App() {
         }
         setActiveChatPartnerId(vendorId);
     };
-    const handleAddToCart = async (product, vendorId, negotiatedPrice, sourceMessageId) => {
+    const handleAddToCart = async (product, vendorId, negotiatedPrice, sourceMessageId, deliveryDetails) => {
         if (!authUser) return;
         try {
             await addDoc(collection(db, `artifacts/${appId}/cart`), {
-                buyerId: authUser.uid, vendorId, productId: product.id, productName: product.name,
-                imageUrl: product.imageUrl, price: negotiatedPrice, quantity: 1,
-                createdAt: serverTimestamp(), sourceMessageId: sourceMessageId || null,
+                buyerId: authUser.uid, vendorId, productId: product.id,
+                productName: product.name, imageUrl: product.imageUrl,
+                price: negotiatedPrice, quantity: 1, createdAt: serverTimestamp(),
+                sourceMessageId: sourceMessageId || null,
+                deliveryDetails: deliveryDetails,
             });
-            setShowCart(true);
+            setShowCart(true); 
         } catch (error) { console.error("Error adding to cart: ", error); }
     };
-    const handlePlaceOrder = async (orderDetails) => { /* ... */ };
+    const handlePlaceOrder = async (orderDetails, itemsByVendor) => {
+        if (!authUser || cartItems.length === 0) return;
+        const batch = writeBatch(db);
+        Object.keys(itemsByVendor).forEach(vendorId => {
+            const vendorData = itemsByVendor[vendorId];
+            const orderRef = doc(collection(db, `artifacts/${appId}/orders`));
+            const vendorSubtotal = vendorData.items.reduce((sum, item) => sum + item.price, 0);
+            batch.set(orderRef, {
+                buyerId: authUser.uid,
+                vendorId: vendorId,
+                totalAmount: vendorSubtotal,
+                deliveryDetails: vendorData.deliveryDetails,
+                orderDate: serverTimestamp(),
+                status: 'Placed'
+            });
+            vendorData.items.forEach(item => {
+                const orderItemRef = doc(collection(db, `artifacts/${appId}/orderItems`));
+                batch.set(orderItemRef, { 
+                    orderId: orderRef.id,
+                    productId: item.productId,
+                    productName: item.productName,
+                    price: item.price,
+                    quantity: item.quantity,
+                    vendorId: item.vendorId,
+                    buyerId: authUser.uid,
+                    createdAt: serverTimestamp()
+                });
+            });
+        });
+        cartItems.forEach(item => {
+            batch.delete(doc(db, `artifacts/${appId}/cart`, item.id));
+        });
+        try {
+            await batch.commit();
+            setIsCheckingOut(false);
+        } catch (error) { console.error("Failed to place order: ", error); }
+    };
     const handleViewVendor = (vendorId) => setActiveView({ page: 'vendorStorefront', context: vendorId });
     const handleViewProfile = () => setActiveView({ page: 'profile', context: null });
     const handleBackToMarket = () => { setSelectedProduct(null); setActiveView({ page: 'marketplace', context: null }); };
@@ -140,10 +178,10 @@ export default function App() {
         }
     };
     
-    const cartItemsWithProducts = cartItems.map(item => ({...item, product: products[item.productId]}));
+    const cartItemsWithProducts = cartItems.map(item => ({...item, product: products[item.productId], vendor: vendors[item.vendorId]}));
 
     return (
-        <main className="bg-gray-50 min-h-screen p-4 sm:p-6 lg:p-8">
+        <main className="bg-gray-50 font-[inter] min-h-screen p-4 sm:p-6 lg:p-8">
             {loading ? <p className="text-center mt-10">Loading...</p> : view === 'app' && authUser && userData ? (
                 <>
                     <Header />
