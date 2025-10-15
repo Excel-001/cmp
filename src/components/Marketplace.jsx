@@ -29,12 +29,11 @@ const ProductCard = ({ product, vendor, onViewProduct, onViewVendor }) => {
 
             <div className="p-2 flex flex-col flex-grow">
                 <h3 className="text-lg font-bold text-gray-900 truncate">{product.name}</h3>
-                <p className="text-xl font-extrabold text-blue-600 ">${product.price.toFixed(2)}</p>
+                <p className="text-xl font-extrabold text-blue-600 ">₦{product.price.toFixed(2)}</p>
 
                 <div className=" border-t pt-2 mt-2  flex-grow">
                     <div
                         className="flex items-center gap-1 cursor-pointer"
-                        onClick={() => onViewVendor && onViewVendor(product.vendorId)}
                     >
                         <img
                             src={
@@ -43,6 +42,7 @@ const ProductCard = ({ product, vendor, onViewProduct, onViewVendor }) => {
                             }
                             alt={vendor?.firstName}
                             className="w-8 h-8 rounded-full object-cover"
+                             onClick={() => onViewVendor && onViewVendor(product.vendorId)}
                         />
                         <div>
                             <p className="text-sm font-semibold text-gray-800 truncate">

@@ -11,7 +11,7 @@ const OfferCard = ({ message, authUser, onRespond }) => {
         <div className="flex justify-center my-3">
             <div className={`p-3 rounded-lg border max-w-xs w-full ${message.status === 'accepted' ? 'bg-green-50 border-green-200' : message.status === 'declined' ? 'bg-red-50 border-red-200' : 'bg-blue-50 border-blue-200'}`}>
                 {message.replyTo && <p className="text-xs text-gray-500">Offer for: <span className="font-medium">{message.replyTo.productName}</span></p>}
-                <p className="text-sm text-center font-semibold my-2">Offer: ${message.price.toFixed(2)}</p>
+                <p className="text-sm text-center font-semibold my-2">Offer: ₦{message.price.toFixed(2)}</p>
                 <div className="text-xs text-center text-gray-500">Status: <span className="font-medium capitalize">{message.status}</span></div>
                 {canRespond && (
                     <div className="flex gap-2 mt-3">
@@ -58,7 +58,7 @@ const ProductTagCard = ({ message, onReply, isInCart }) => (
                 <img src={message.productImageUrl} alt={message.productName} className="w-16 h-16 rounded-md object-cover" />
                 <div>
                     <p className="font-bold text-gray-800">{message.productName}</p>
-                    <p className="text-gray-600">${message.productPrice.toFixed(2)}</p>
+                    <p className="text-gray-600">₦{message.productPrice.toFixed(2)}</p>
                 </div>
             </div>
             <div className="flex gap-2 mt-3">

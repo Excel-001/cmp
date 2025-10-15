@@ -51,7 +51,7 @@ const Checkout = ({ cartItems, onPlaceOrder, onBack }) => {
                                         {data.items.map(item => (
                                             <div key={item.id} className="flex justify-between items-center text-sm">
                                                 <span>{item.productName}</span>
-                                                <span className="font-medium">${item.price.toFixed(2)}</span>
+                                                <span className="font-medium">₦{item.price.toFixed(2)}</span>
                                             </div>
                                         ))}
                                     </div>
@@ -71,7 +71,7 @@ const Checkout = ({ cartItems, onPlaceOrder, onBack }) => {
                 <footer className="p-4 border-t bg-gray-50 rounded-b-lg">
                     <div className="flex justify-between items-center font-bold text-xl mb-4">
                         <span>Grand Total</span>
-                        <span>${grandTotal.toFixed(2)}</span>
+                        <span>₦{grandTotal.toFixed(2)}</span>
                     </div>
                     <button 
                         onClick={handlePlaceOrderClick}

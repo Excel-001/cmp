@@ -33,7 +33,7 @@ const ProductList = ({ products, onDeleteClick }) => (
                         <img src={getThumbnailUrl(product.imageUrl)} alt={product.name} className="w-full h-40 object-cover"/>
                         <div className="p-4">
                             <h4 className="font-semibold text-gray-900">{product.name}</h4>
-                            <p className="text-gray-600">${product.price.toFixed(2)}</p>
+                            <p className="text-gray-600">₦{product.price.toFixed(2)}</p>
                              <button onClick={() => onDeleteClick(product.id)} className="text-sm text-red-500 hover:underline mt-2">Delete</button>
                         </div>
                     </div>
@@ -159,7 +159,7 @@ const ProductManager = ({ user, userData }) => {
                         <textarea value={description} onChange={(e) => setDescription(e.target.value)} className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md"></textarea>
                     </div>
                     <div>
-                        <label className="block text-sm font-medium text-gray-700">Price ($)</label>
+                        <label className="block text-sm font-medium text-gray-700">Price (₦)</label>
                         <input type="number" step="0.01" value={price} onChange={(e) => setPrice(e.target.value)} className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md" required />
                     </div>
                     <div>

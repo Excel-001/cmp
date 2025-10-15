@@ -3,7 +3,8 @@ import {
     createUserWithEmailAndPassword, 
     signInWithEmailAndPassword,
     OAuthProvider,
-    signInWithPopup
+    signInWithPopup,
+    sendPasswordResetEmail
 } from 'firebase/auth';
 import { doc, setDoc, getDoc, serverTimestamp } from 'firebase/firestore';
 import { auth, db, appId } from '../firebaseConfig.js';
@@ -37,7 +38,7 @@ const handleAppleSignIn = async () => {
 };
 
 // --- SignUp Form Component ---
-const SignUp = ({ setAuthView }) => {
+function SignUp({ setAuthView }) {
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
     const [firstName, setFirstName] = useState('');
@@ -51,7 +52,6 @@ const SignUp = ({ setAuthView }) => {
     const handleSignUp = async (e) => {
         e.preventDefault();
         setError('');
-
         if (!location || !firstName || !lastName || !email || !password || !phoneNumber) {
             setError("Please fill out all required fields.");
             return;
@@ -84,7 +84,7 @@ const SignUp = ({ setAuthView }) => {
         <div className="w-full max-w-md p-6 sm:p-8 space-y-6 bg-white rounded-lg shadow-md">
             <h2 className="text-2xl sm:text-3xl font-bold text-center text-gray-900">Create an Account</h2>
             <form onSubmit={handleSignUp} className="space-y-4">
-                <div className="flex flex-col sm:flex-row gap-4">
+                 <div className="flex flex-col sm:flex-row gap-4">
                     <div className="w-full sm:w-1/2">
                         <label className="block text-sm font-medium text-gray-700">First Name</label>
                         <input type="text" value={firstName} onChange={(e) => setFirstName(e.target.value)} className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm" required />
@@ -94,7 +94,7 @@ const SignUp = ({ setAuthView }) => {
                         <input type="text" value={lastName} onChange={(e) => setLastName(e.target.value)} className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm" required />
                     </div>
                 </div>
-                <div>
+                 <div>
                     <label className="block text-sm font-medium text-gray-700">Middle Name <span className="text-gray-400">(Optional)</span></label>
                     <input type="text" value={middleName} onChange={(e) => setMiddleName(e.target.value)} className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm" />
                 </div>
@@ -138,8 +138,8 @@ const SignUp = ({ setAuthView }) => {
     );
 };
 
-// --- Login Form Component (Unchanged) ---
-const Login = ({ setAuthView }) => {
+// --- Login Form Component ---
+function Login({ setAuthView }) {
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
     const [error, setError] = useState('');
@@ -159,7 +159,16 @@ const Login = ({ setAuthView }) => {
                     <input type="email" value={email} onChange={(e) => setEmail(e.target.value)} className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm" required />
                 </div>
                 <div>
-                    <label className="block text-sm font-medium text-gray-700">Password</label>
+                    <div className="flex justify-between items-center">
+                        <label className="block text-sm font-medium text-gray-700">Password</label>
+                        <button 
+                            type="button" 
+                            onClick={() => setAuthView('forgotPassword')} 
+                            className="text-sm font-medium text-blue-600 hover:text-blue-500"
+                        >
+                            Forgot password?
+                        </button>
+                    </div>
                     <input type="password" value={password} onChange={(e) => setPassword(e.target.value)} className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm" required />
                 </div>
                 {error && <p className="text-red-500 text-sm text-center">{error}</p>}
@@ -173,15 +182,71 @@ const Login = ({ setAuthView }) => {
     );
 };
 
-// --- Main Auth Component (Unchanged) ---
+// --- Forgot Password Component ---
+function ForgotPassword({ setAuthView }) {
+    const [email, setEmail] = useState('');
+    const [error, setError] = useState('');
+    const [success, setSuccess] = useState('');
+    const [loading, setLoading] = useState(false);
+
+    const handleResetPassword = async (e) => {
+        e.preventDefault();
+        setError('');
+        setSuccess('');
+        setLoading(true);
+
+        try {
+            await sendPasswordResetEmail(auth, email);
+            setSuccess('Password reset email sent! Please check your inbox.');
+        } catch (err) {
+            setError('Failed to send reset email. Please check the address and try again.');
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    return (
+        <div className="w-full max-w-md p-6 sm:p-8 space-y-6 bg-white rounded-lg shadow-md">
+            <h2 className="text-2xl sm:text-3xl font-bold text-center text-gray-900">Reset Your Password</h2>
+            <p className="text-center text-sm text-gray-600">Enter your email address and we will send you a link to reset your password.</p>
+            <form onSubmit={handleResetPassword} className="space-y-6">
+                <div>
+                    <label className="block text-sm font-medium text-gray-700">Email</label>
+                    <input type="email" value={email} onChange={(e) => setEmail(e.target.value)} className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm" required autoFocus />
+                </div>
+                {error && <p className="text-red-500 text-sm text-center">{error}</p>}
+                {success && <p className="text-green-600 text-sm text-center">{success}</p>}
+                <button type="submit" disabled={loading} className="w-full py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 disabled:bg-blue-300">
+                    {loading ? 'Sending...' : 'Send Reset Link'}
+                </button>
+            </form>
+            <p className="text-center text-sm text-gray-600">
+                Remembered your password?{' '}
+                <button onClick={() => setAuthView('login')} className="font-medium text-blue-600 hover:text-blue-500">Sign In</button>
+            </p>
+        </div>
+    );
+};
+
+// --- Main Auth Component ---
 const Auth = () => {
-    const [authView, setAuthView] = useState('login');
+    const [authView, setAuthView] = useState('login'); 
+
+    const renderView = () => {
+        switch (authView) {
+            case 'signup':
+                return <SignUp setAuthView={setAuthView} />;
+            case 'forgotPassword':
+                return <ForgotPassword setAuthView={setAuthView} />;
+            case 'login':
+            default:
+                return <Login setAuthView={setAuthView} />;
+        }
+    };
+
     return (
         <div className="flex justify-center items-center min-h-[60vh]">
-            {authView === 'login' 
-                ? <Login setAuthView={setAuthView} /> 
-                : <SignUp setAuthView={setAuthView} />
-            }
+            {renderView()}
         </div>
     );
 };
