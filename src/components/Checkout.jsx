@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import https from 'http';
 
 const Checkout = ({ cartItems, userData, onPlaceOrder, onBack }) => {
     const [deliveryLocation, setDeliveryLocation] = useState(userData.location || '');
@@ -27,8 +28,67 @@ const Checkout = ({ cartItems, userData, onPlaceOrder, onBack }) => {
     }, [selectedMethod, dropoffFee]);
 
     const total = subtotal + deliveryFee;
+    
+    const handlePayment = async () => {
+        try {
+            const params = JSON.stringify({
+                email: userData.email,
+                amount: Math.round(total * 100),
+                callback_url: window.location.origin + '/payment-success', // Optional: redirect after payment
+            });
 
-    const handleSubmit = (e) => {
+            const response = await fetch('https://api.paystack.co/transaction/initialize', {
+                method: 'POST',
+                headers: {
+                    Authorization: 'Bearer sk_live_b7a7956254d1e3a60fe8b4d63913104360db3dd8',
+                    'Content-Type': 'application/json'
+                },
+                body: params
+            });
+
+            const result = await response.json();
+            
+            if (result.status && result.data.authorization_url) {
+                // Redirect to Paystack payment page
+                window.location.href = result.data.authorization_url;
+            } else {
+                setError('Failed to initialize payment. Please try again.');
+                console.error('Payment initialization failed:', result);
+            }
+        } catch (error) {
+            setError('Payment error. Please try again.');
+            console.error('Payment error:', error);
+        }
+};
+
+    // const config = {
+    //     reference: `order_${new Date().getTime()}`,
+    //     email: userData.email,
+    //     amount: Math.round(total * 100),
+    //     publicKey: process.env.REACT_APP_PAYSTACK_PUBLIC_KEY,
+    // }
+
+
+    // const onSuccess = (reference) => {
+    //     const orderDetails = {
+    //         deliveryLocation,
+    //         deliveryTime,
+    //         deliveryMethod: selectedMethod,
+    //         deliveryFee,
+    //         totalAmount: total,
+    //         paymentReference: reference.reference,
+    //         paymentStatus: 'paid',
+    //     };
+    //     onPlaceOrder(orderDetails);
+    // };
+
+    // const onClose = () => {
+    //     setError('Payment was cancelled');
+    // };
+
+    // const initializePayment = usePaystackPayment
+
+    const handleSubmit = async (e) => {
         e.preventDefault();
         if (!deliveryLocation || !deliveryTime) {
             setError('Please confirm a time and location.');
@@ -39,7 +99,10 @@ const Checkout = ({ cartItems, userData, onPlaceOrder, onBack }) => {
             deliveryMethod: selectedMethod, deliveryFee,
             totalAmount: total,
         };
-        onPlaceOrder(orderDetails);
+        localStorage.setItem('pendingOrder', JSON.stringify(orderDetails));
+        await handlePayment();
+        //onPlaceOrder(orderDetails);
+        
     };
 
     return (

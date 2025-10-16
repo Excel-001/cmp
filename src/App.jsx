@@ -102,15 +102,116 @@ export default function App() {
     const handleViewProduct = (product) => setSelectedProduct(product);
 
     const Header = () => (
-        <div className="w-full max-w-6xl mx-auto flex justify-between items-center mb-8">
-            {/* <div onClick={handleBackToMarket} className="cursor-pointer"><Logo /></div> */}
-            <div>
-                <button onClick={handleBackToMarket} className={`px-4 py-2 rounded-md mr-2 ${activeView.page === 'marketplace' ? 'bg-blue-100 text-blue-700' : 'text-gray-500'}`}>Market</button>
-                <button onClick={handleViewProfile} className={`px-4 py-2 rounded-md mr-2 ${activeView.page === 'profile' ? 'bg-blue-100 text-blue-700' : 'text-gray-500'}`}>Profile</button>
-                <button onClick={() => setShowCart(true)} className="relative p-2 rounded-full hover:bg-gray-100">
-                    <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z"></path></svg>
-                    {cartItems.length > 0 && <span className="absolute top-0 right-0 h-5 w-5 rounded-full bg-red-500 text-white text-xs flex items-center justify-center">{cartItems.length}</span>}
-                </button>
+        // <div className="w-full max-w-6xl mx-auto flex justify-between items-center mb-8">
+        //     {/* <div onClick={handleBackToMarket} className="cursor-pointer"><Logo /></div> */}
+        //     <div>
+        //         <button onClick={handleBackToMarket} className={`px-4 py-2 rounded-md mr-2 ${activeView.page === 'marketplace' ? 'bg-blue-100 text-blue-700' : 'text-gray-500'}`}>Market</button>
+        //         <button onClick={handleViewProfile} className={`px-4 py-2 rounded-md mr-2 ${activeView.page === 'profile' ? 'bg-blue-100 text-blue-700' : 'text-gray-500'}`}>Profile</button>
+        //         <button onClick={() => setShowCart(true)} className="relative p-2 rounded-full hover:bg-gray-100">
+        //             <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z"></path></svg>
+        //             {cartItems.length > 0 && <span className="absolute top-0 right-0 h-5 w-5 rounded-full bg-red-500 text-white text-xs flex items-center justify-center">{cartItems.length}</span>}
+        //         </button>
+        //     </div>
+        // </div>
+        <div className="navbar bg-base-100 shadow-lg rounded-box mb-6 sticky top-0 z-40">
+            <div className="navbar-start">
+                <div className="dropdown">
+                    <label tabIndex={0} className="btn btn-ghost lg:hidden">
+                        <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 6h16M4 12h8m-8 6h16" />
+                        </svg>
+                    </label>
+                    <ul tabIndex={0} className="menu menu-sm dropdown-content mt-3 z-[1] p-2 shadow bg-base-100 rounded-box w-52">
+                        <li>
+                            <a 
+                                onClick={handleBackToMarket}
+                                className={activeView.page === 'marketplace' ? 'active' : ''}
+                            >
+                                <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
+                                </svg>
+                                Marketplace
+                            </a>
+                        </li>
+                        <li>
+                            <a 
+                                onClick={handleViewProfile}
+                                className={activeView.page === 'profile' ? 'active' : ''}
+                            >
+                                <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                                </svg>
+                                Profile
+                            </a>
+                        </li>
+                        <li>
+                            <a onClick={handleSignOut}>
+                                <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+                                </svg>
+                                Sign Out
+                            </a>
+                        </li>
+                    </ul>
+                </div>
+                <a onClick={handleBackToMarket} className="btn btn-ghost normal-case text-xl">
+                    <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z" />
+                    </svg>
+                    CampusMarket
+                </a>
+            </div>
+            
+            <div className="navbar-end gap-2">
+                {/* Cart Button */}
+                <div className="indicator">
+                    <button onClick={() => setShowCart(true)} className="btn btn-ghost btn-circle">
+                        <div className="indicator">
+                            {cartItems.length > 0 && (
+                                <span className="badge badge-sm badge-primary indicator-item">{cartItems.length}</span>
+                            )}
+                            <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z" />
+                            </svg>
+                        </div>
+                    </button>
+                </div>
+
+                {/* User Avatar Dropdown */}
+                <div className="dropdown dropdown-end">
+                    <label tabIndex={0} className="btn btn-ghost btn-circle avatar">
+                        <div className="w-10 rounded-full ring ring-primary ring-offset-base-100 ring-offset-2">
+                            <img 
+                                src={userData?.photoURL || `https://placehold.co/40x40/E0E7FF/4F46E5?text=${userData?.firstName?.charAt(0) || 'U'}`} 
+                                alt={userData?.firstName}
+                            />
+                        </div>
+                    </label>
+                    <ul tabIndex={0} className="mt-3 z-[1] p-2 shadow menu menu-sm dropdown-content bg-base-100 rounded-box w-52">
+                        <li className="menu-title">
+                            <span>{userData?.firstName} {userData?.lastName}</span>
+                        </li>
+                        <li><a onClick={handleViewProfile}>
+                            <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                            </svg>
+                            Profile
+                        </a></li>
+                        <li><a onClick={() => setShowCart(true)}>
+                            <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z" />
+                            </svg>
+                            Cart ({cartItems.length})
+                        </a></li>
+                        <div className="divider my-0"></div>
+                        <li><a onClick={handleSignOut} className="text-error">
+                            <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+                            </svg>
+                            Sign Out
+                        </a></li>
+                    </ul>
+                </div>
             </div>
         </div>
     );
@@ -143,7 +244,7 @@ export default function App() {
     const cartItemsWithProducts = cartItems.map(item => ({...item, product: products[item.productId]}));
 
     return (
-        <main className="bg-gray-50 min-h-screen p-4 sm:p-6 lg:p-8">
+        <main className="min-h-screen bg-base-200">
             {loading ? <p className="text-center mt-10">Loading...</p> : view === 'app' && authUser && userData ? (
                 <>
                     <Header />
