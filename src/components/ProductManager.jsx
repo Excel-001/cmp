@@ -2,14 +2,40 @@ import React, { useState, useEffect } from 'react';
 import { collection, addDoc, query, where, onSnapshot, serverTimestamp, doc, deleteDoc } from 'firebase/firestore';
 import imageCompression from 'https://cdn.jsdelivr.net/npm/browser-image-compression@2.0.2/dist/browser-image-compression.mjs';
 // --- HIGHLIGHT: The import path for firebaseConfig.js has been corrected ---
-import { db, appId } from '/src/firebaseConfig.js';
+import { db, appId } from '../firebaseConfig.js';
 
-// --- Reusable components (No Changes) ---
-const getThumbnailUrl = (originalUrl) => {
-    if (!originalUrl || !originalUrl.includes('/image/upload/')) return originalUrl;
-    const parts = originalUrl.split('/image/upload/');
-    return `${parts[0]}/image/upload/w_400,h_400,c_fill,q_auto/${parts[1]}`;
+// --- Reusable Component for displaying a list of products ---
+const ProductList = ({ products, onDeleteClick }) => {
+    const getThumbnailUrl = (originalUrl) => {
+        if (!originalUrl || !originalUrl.includes('/image/upload/')) return originalUrl;
+        const parts = originalUrl.split('/image/upload/');
+        return `${parts[0]}/image/upload/w_400,h_400,c_fill,q_auto/${parts[1]}`;
+    };
+
+    return (
+        <div className="mt-8">
+            <h3 className="text-xl font-semibold text-gray-800">Your Products</h3>
+            {products.length === 0 ? (
+                <p className="text-gray-500 mt-2">You haven't added any products yet.</p>
+            ) : (
+                <div className="mt-4 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+                    {products.map(product => (
+                        <div key={product.id} className="bg-white rounded-lg shadow-sm border overflow-hidden">
+                            <img src={getThumbnailUrl(product.imageUrl)} alt={product.name} className="w-full h-40 object-cover"/>
+                            <div className="p-4">
+                                <h4 className="font-semibold text-gray-900">{product.name}</h4>
+                                <p className="text-gray-600">${product.price.toFixed(2)}</p>
+                                <button onClick={() => onDeleteClick(product.id)} className="text-sm text-red-500 hover:underline mt-2">Delete</button>
+                            </div>
+                        </div>
+                    ))}
+                </div>
+            )}
+        </div>
+    );
 };
+
+// --- Reusable Component for the delete confirmation modal ---
 const ConfirmationModal = ({ message, onConfirm, onCancel }) => (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-50 p-4">
         <div className="bg-white p-6 rounded-lg shadow-xl text-center max-w-sm w-full">
@@ -21,33 +47,13 @@ const ConfirmationModal = ({ message, onConfirm, onCancel }) => (
         </div>
     </div>
 );
-const ProductList = ({ products, onDeleteClick }) => (
-    <div className="mt-8">
-        <h3 className="text-xl font-semibold text-gray-800">Your Products</h3>
-        {products.length === 0 ? (
-            <p className="text-gray-500 mt-2">You haven't added any products yet.</p>
-        ) : (
-            <div className="mt-4 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-                {products.map(product => (
-                    <div key={product.id} className="bg-white rounded-lg shadow-sm border overflow-hidden">
-                        <img src={getThumbnailUrl(product.imageUrl)} alt={product.name} className="w-full h-40 object-cover"/>
-                        <div className="p-4">
-                            <h4 className="font-semibold text-gray-900">{product.name}</h4>
-                            <p className="text-gray-600">₦{product.price.toFixed(2)}</p>
-                             <button onClick={() => onDeleteClick(product.id)} className="text-sm text-red-500 hover:underline mt-2">Delete</button>
-                        </div>
-                    </div>
-                ))}
-            </div>
-        )}
-    </div>
-);
+
 
 const ProductManager = ({ user, userData }) => {
     const [name, setName] = useState('');
     const [description, setDescription] = useState('');
     const [price, setPrice] = useState('');
-    const [imageFile, setImageFile] = useState(null);
+    const [imageFiles, setImageFiles] = useState([]);
     const [error, setError] = useState('');
     const [success, setSuccess] = useState('');
     const [uploading, setUploading] = useState(false);
@@ -55,15 +61,9 @@ const ProductManager = ({ user, userData }) => {
     const [productToDelete, setProductToDelete] = useState(null);
     const [deliveryOptions, setDeliveryOptions] = useState({ meetup: true, dropoff: false, dispatch: false });
     const [deliveryFee, setDeliveryFee] = useState(0);
-
     const [attributes, setAttributes] = useState({
-        brand: '',
-        color: '',
-        size: '',
-        material: '',
-        fit: 'Regular',
-        gender: 'Unisex',
-        availability: 'In Stock',
+        brand: '', color: '', size: '', material: '',
+        fit: 'Regular', gender: 'Unisex', availability: 'In Stock',
     });
 
     const CLOUDINARY_CLOUD_NAME = "dojvewcke";
@@ -77,9 +77,18 @@ const ProductManager = ({ user, userData }) => {
         });
         return unsubscribe;
     }, [user]);
-    
-    const handleImageSelect = (e) => e.target.files[0] && setImageFile(e.target.files[0]);
-    const handleDeleteClick = (productId) => setProductToDelete(productId);
+
+    const handleImageSelect = (e) => {
+        if (e.target.files) {
+            const files = Array.from(e.target.files).slice(0, 5);
+            setImageFiles(files);
+        }
+    };
+
+    const handleDeleteClick = (productId) => {
+        setProductToDelete(productId);
+    };
+
     const confirmDelete = async () => {
         if (!productToDelete) return;
         try {
@@ -89,13 +98,13 @@ const ProductManager = ({ user, userData }) => {
         } finally {
             setProductToDelete(null);
         }
-     };
+    };
 
     const handleAttributeChange = (e) => {
         const { name, value } = e.target;
         setAttributes(prev => ({ ...prev, [name]: value }));
     };
-
+    
     const handleDeliveryOptionChange = (e) => {
         const { name, checked } = e.target;
         setDeliveryOptions(prev => ({ ...prev, [name]: checked }));
@@ -103,24 +112,38 @@ const ProductManager = ({ user, userData }) => {
 
     const handleSubmit = async (e) => {
         e.preventDefault();
+        if (!name || !price || imageFiles.length === 0) {
+            setError('Please fill out all fields and select at least one image.');
+            return;
+        }
+
         setUploading(true);
         setError('');
+        setSuccess('');
+
         try {
-            const compressedFile = await imageCompression(imageFile, { maxSizeMB: 1, maxWidthOrHeight: 800 });
-            const formData = new FormData();
-            formData.append('file', compressedFile);
-            formData.append('upload_preset', CLOUDINARY_UPLOAD_PRESET);
-            const response = await fetch(`https://api.cloudinary.com/v1_1/${CLOUDINARY_CLOUD_NAME}/image/upload`, { method: 'POST', body: formData });
-            if (!response.ok) throw new Error('Upload failed');
-            const data = await response.json();
-            
+            const uploadPromises = imageFiles.map(async (file) => {
+                const compressedFile = await imageCompression(file, { maxSizeMB: 1, maxWidthOrHeight: 1024 });
+                const formData = new FormData();
+                formData.append('file', compressedFile);
+                formData.append('upload_preset', CLOUDINARY_UPLOAD_PRESET);
+                const response = await fetch(`https://api.cloudinary.com/v1_1/${CLOUDINARY_CLOUD_NAME}/image/upload`, { method: 'POST', body: formData });
+                if (!response.ok) throw new Error('Image upload failed');
+                return response.json();
+            });
+
+            const uploadedImages = await Promise.all(uploadPromises);
+            const imageUrls = uploadedImages.map(img => img.secure_url);
+
             await addDoc(collection(db, `artifacts/${appId}/products`), {
                 vendorId: user.uid,
                 vendorLocation: userData.location,
-                name, description, imageUrl: data.secure_url,
+                name, description, 
                 price: parseFloat(price),
                 createdAt: serverTimestamp(),
-                attributes: attributes,
+                imageUrl: imageUrls[0],
+                images: imageUrls.slice(1),
+                attributes,
                 deliveryOptions: {
                     ...deliveryOptions,
                     deliveryFee: deliveryOptions.dropoff ? parseFloat(deliveryFee) : 0,
@@ -128,17 +151,16 @@ const ProductManager = ({ user, userData }) => {
                 salesCount: 0,
                 rating: 0,
             });
+
             setSuccess('Product added successfully!');
-            // Reset form
-            setName('');
-            setDescription('');
-            setPrice('');
-            setImageFile(null);
+            setName(''); setDescription(''); setPrice(''); setImageFiles([]);
             setAttributes({ brand: '', color: '', size: '', material: '', fit: 'Regular', gender: 'Unisex', availability: 'In Stock' });
             document.getElementById('product-image-input').value = null;
+            setTimeout(() => setSuccess(''), 4000);
 
         } catch (err) {
             setError('Failed to add product.');
+            console.error(err);
         } finally {
             setUploading(false);
         }
@@ -146,7 +168,7 @@ const ProductManager = ({ user, userData }) => {
     
     return (
         <div>
-            {productToDelete && <ConfirmationModal message="Are you sure you want to delete this product?" onConfirm={confirmDelete} onCancel={() => setProductToDelete(null)} />}
+            {productToDelete && <ConfirmationModal message="Are you sure you want to delete this product? This cannot be undone." onConfirm={confirmDelete} onCancel={() => setProductToDelete(null)} />}
             <div className="p-6 bg-white rounded-lg shadow-sm border">
                 <h2 className="text-2xl font-bold">Add a New Product</h2>
                 <form onSubmit={handleSubmit} className="mt-4 space-y-4">
@@ -156,17 +178,27 @@ const ProductManager = ({ user, userData }) => {
                     </div>
                     <div>
                         <label className="block text-sm font-medium text-gray-700">Description</label>
-                        <textarea value={description} onChange={(e) => setDescription(e.target.value)} className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md"></textarea>
+                        <textarea value={description} onChange={(e) => setDescription(e.target.value)} rows="3" className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md"></textarea>
                     </div>
                     <div>
-                        <label className="block text-sm font-medium text-gray-700">Price (₦)</label>
+                        <label className="block text-sm font-medium text-gray-700">Price ($)</label>
                         <input type="number" step="0.01" value={price} onChange={(e) => setPrice(e.target.value)} className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md" required />
                     </div>
                     <div>
-                        <label className="block text-sm font-medium text-gray-700">Product Image</label>
-                        <input id="product-image-input" type="file" onChange={handleImageSelect} accept="image/*" className="mt-1 block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100" required />
+                        <label className="block text-sm font-medium text-gray-700">Product Images (up to 5)</label>
+                        <input id="product-image-input" type="file" onChange={handleImageSelect} accept="image/*" multiple className="mt-1 block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100" required />
                     </div>
-
+                    
+                    {imageFiles.length > 0 && (
+                        <div className="grid grid-cols-3 sm:grid-cols-5 gap-2">
+                            {imageFiles.map((file, index) => (
+                                <div key={index} className="relative aspect-square">
+                                    <img src={URL.createObjectURL(file)} alt={`preview ${index}`} className="w-full h-full object-cover rounded-md" />
+                                </div>
+                            ))}
+                        </div>
+                    )}
+                    
                     <div className="pt-4 border-t">
                         <h3 className="text-lg font-semibold text-gray-800">Product Details</h3>
                         <div className="mt-2 grid grid-cols-1 sm:grid-cols-2 gap-4">
